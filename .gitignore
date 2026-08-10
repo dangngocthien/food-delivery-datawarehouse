@@ -1,0 +1,80 @@
+# ============================
+# Python
+# ============================
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+
+# ============================
+# Biến môi trường & bí mật (KHÔNG commit)
+# ============================
+.env
+*.env
+secrets/
+*.key
+*.pem
+
+# ============================
+# Dataset gốc / dữ liệu thô (quá nặng, mỗi người tự tải về máy)
+# Vẫn giữ lại sample_data.csv (dữ liệu mẫu nhỏ) để code chung
+# ============================
+food_delivery_dataset.csv
+Food_Delivery_Time*.csv
+*.parquet
+data/
+raw/
+cleansed/
+curated/
+!**/sample_data.csv
+
+# ============================
+# Docker volumes lưu local (nếu bind-mount ra thư mục repo)
+# ============================
+volumes/
+minio-data/
+postgres-data/
+postgres-airflow-data/
+kafka-data/
+zookeeper-data/
+
+# ============================
+# Airflow
+# ============================
+airflow.cfg
+airflow.db
+logs/
+airflow_logs/
+
+# ============================
+# Jupyter Notebook
+# ============================
+.ipynb_checkpoints/
+
+# ============================
+# dbt
+# ============================
+target/
+dbt_packages/
+logs/
+
+# ============================
+# IDE / Editor
+# ============================
+.vscode/
+.idea/
+*.swp
+
+# ============================
+# OS
+# ============================
+.DS_Store
+Thumbs.db
+
+# ============================
+# draw.io backup files
+# ============================
+*.bkp
