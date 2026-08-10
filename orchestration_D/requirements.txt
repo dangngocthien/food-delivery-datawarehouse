@@ -1,11 +1,11 @@
-# requirements.txt — orchestration_D
-# Thư viện Python cần cài trên MÁY HOST (không phải trong container Docker)
-# để chạy notebook thử nghiệm và script train mô hình AI/ML (dự đoán delivery_time_min).
+# requirements.txt - orchestration_D
+# Thu vien Python can cai tren MAY HOST (khong phai trong container Docker)
+# de chay notebook thu nghiem va script train mo hinh AI/ML (du doan delivery_time_min).
 #
-# Lưu ý: Airflow KHÔNG nằm trong file này vì Airflow chạy trong Docker container
-# riêng theo docker-compose.yml, không cài trực tiếp trên máy host.
+# Luu y: Airflow KHONG nam trong file nay vi Airflow chay trong Docker container
+# rieng theo docker-compose.yml, khong cai truc tiep tren may host.
 #
-# Cách cài:
+# Cach cai:
 #   python -m venv venv
 #   venv\Scripts\activate        (Windows)
 #   source venv/bin/activate     (Mac/Linux)
@@ -17,8 +17,8 @@ xgboost>=2.0.0
 joblib>=1.3.0
 jupyter>=1.0.0
 
-# Kết nối tới Postgres warehouse (đọc dữ liệu từ Fact_Order, Dim_* để train/đánh giá mô hình)
+# Ket noi toi Postgres warehouse (doc du lieu tu Fact_Order, Dim_* de train/danh gia mo hinh)
 psycopg2-binary>=2.9.0
 
-# Gọi API Metabase để refresh/trigger dashboard (task_refresh_dashboard trong DAG, nếu cần)
+# Goi API Metabase de refresh/trigger dashboard (task_refresh_dashboard trong DAG, neu can)
 requests>=2.31.0
