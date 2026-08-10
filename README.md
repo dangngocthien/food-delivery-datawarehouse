@@ -29,6 +29,11 @@ Chi tiết công việc từng phần: xem `README.md` bên trong mỗi thư m�
 **Hợp đồng dữ liệu (tên cột, schema, format Kafka message)** — cố định, không ai
 được tự đổi mà không báo nhóm: xem file phân công gốc (`PhanCong_DoAn18...md`) Mục 2.
 
+**Nguyên tắc dữ liệu:** không nộp/push file dữ liệu thật (Parquet, MinIO, Kafka
+messages...) lên Git. Mỗi người tự chạy lại script trên máy mình để tái tạo dữ liệu
+vào hạ tầng chung — giảng viên tái tạo lại toàn bộ bằng cách chạy các script theo
+đúng thứ tự A → B → C → D.
+
 ## 3. Cách chạy toàn bộ hệ thống
 
 ```bash
@@ -48,6 +53,14 @@ docker compose down -v
 Lần đầu chạy `docker compose up -d`, Airflow sẽ tải image khá lâu (~vài phút tuỳ mạng).
 Đợi tất cả container ở trạng thái `Up` trước khi thao tác (`docker compose ps` để kiểm tra).
 
+> **Ghi chú hạ tầng (quan trọng — đọc trước khi chạy):** Kể từ 9/2025, Bitnami
+> (Broadcom) đã gỡ toàn bộ tag phiên bản miễn phí của image Spark khỏi Docker Hub
+> (`bitnami/spark:3.5` không còn pull được). File `docker-compose.yml` này đã được
+> cập nhật dùng `bitnamilegacy/spark:3.5` (bản đóng băng, không cập nhật thêm nhưng
+> vẫn tải được, phù hợp cho đồ án học tập) cho cả `spark-master` và `spark-worker`.
+> Nếu bạn từng clone repo trước khi bản sửa này được push, hãy `git pull` để lấy
+> đúng image mới trước khi chạy `docker compose up -d`.
+
 ## 4. Danh sách dịch vụ & cổng truy cập
 
 | Dịch vụ | URL / Cổng | Tài khoản mặc định | Phụ trách |
@@ -58,6 +71,10 @@ Lần đầu chạy `docker compose up -d`, Airflow sẽ tải image khá lâu (
 | Postgres (warehouse) | `localhost:5432` | `warehouse` / `warehouse123`, db `food_delivery_dw` | C |
 | Airflow | http://localhost:8081 | `admin` / `admin` | D |
 | Metabase | http://localhost:3000 | Tự tạo tài khoản lần đầu truy cập | D |
+
+> Mỗi thành viên tự tạo file `.env` riêng trong thư mục của mình (không push lên
+> Git) để trỏ đúng vào các endpoint ở bảng trên. Xem `.env.example` (nếu có) trong
+> từng thư mục thành viên để biết tên biến cần khai báo.
 
 ## 5. Lưu ý tài nguyên máy
 

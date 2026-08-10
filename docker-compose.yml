@@ -93,7 +93,7 @@ services:
   # SPARK (Thành viên B - Spark & Data Lake)
   # -------------------------------------------------------------
   spark-master:
-    image: bitnami/spark:3.5
+    image: bitnamilegacy/spark:3.5
     container_name: spark-master
     environment:
       SPARK_MODE: master
@@ -102,7 +102,7 @@ services:
       - "7077:7077"
 
   spark-worker:
-    image: bitnami/spark:3.5
+    image: bitnamilegacy/spark:3.5
     container_name: spark-worker
     environment:
       SPARK_MODE: worker

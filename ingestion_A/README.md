@@ -1,61 +1,121 @@
-# /ingestion — Thành viên A: Ingestion & Streaming
+# Ingestion & Streaming — Phần A
 
-## Mục tiêu
-Đưa dữ liệu vào hệ thống theo 2 dạng: **batch** (dataset Kaggle) và **streaming** (Kafka).
+Phần này chịu trách nhiệm đưa dữ liệu vào hệ thống bằng 2 luồng: **batch** (đọc CSV Kaggle → ghi Parquet vào MinIO) và **streaming** (giả lập sự kiện đơn hàng realtime → gửi vào Kafka). Thư mục này là input đầu vào cho **Thành viên B (Spark & Data Lake)**.
 
-## Việc cần làm
+> Toàn bộ script trong thư mục này chạy trên **hạ tầng Docker chung của cả nhóm** (`docker-compose.yml` ở thư mục gốc repo). Không có hạ tầng Docker riêng.
 
-1. **Tải dataset Kaggle** (Food Delivery Time — 10 cột thật), đổi tên cột về snake_case theo đúng bảng ở Mục 2.2 file phân công:
-   - `ID` → `order_id`, `Delivery_person_ID` → `driver_id`, `Delivery_person_Age` → `driver_age`, `Delivery_person_Ratings` → `driver_rating`, `Restaurant_latitude/longitude` → `restaurant_lat/lon`, `Delivery_location_latitude/longitude` → `delivery_lat/lon`, `Type_of_order` → `order_type`, `Type_of_vehicle` → `vehicle_type`.
+---
 
-2. **Viết script mô phỏng thêm cột** không có trong Kaggle (theo đúng luật sinh ở Mục 2.2):
-   - `restaurant_id` — sinh từ cặp toạ độ nhà hàng duy nhất.
-   - `city` — random trong `["Ho Chi Minh", "Ha Noi", "Da Nang"]`.
-   - `order_date` — random trong 30 ngày gần đây (batch) / ngày hiện tại (streaming).
-   - `time_ordered` — random giờ trong ngày (batch) / thời điểm thật lúc producer chạy (streaming).
-   - `time_picked` = `time_ordered` + random 10–30 phút.
-   - `time_delivered` = `time_picked` + thời gian giao giả lập (dựa trên khoảng cách).
-   - `order_amount` — random 30.000–300.000 VNĐ.
-   - Ghi kết quả vào MinIO `raw/`.
+## 1. Cấu trúc thư mục
 
-3. **Viết `producer.py`**: sinh đơn hàng giả lập, gửi 4 sự kiện trạng thái/đơn (`placed`, `cooking`, `picked`, `delivered` — đúng thứ tự) vào Kafka topic **`order-events`**, đúng format JSON:
-   ```json
-   {
-     "order_id": "ORD00123",
-     "status": "placed",
-     "timestamp": "2026-08-08T10:15:00",
-     "restaurant_id": "REST_10p77_106p70",
-     "driver_id": "BANGRES18DEL02",
-     "city": "Ho Chi Minh",
-     "restaurant_lat": 10.77,
-     "restaurant_lon": 106.70,
-     "delivery_lat": 10.80,
-     "delivery_lon": 106.65
-   }
-   ```
-
-4. **Viết consumer test** đơn giản để tự kiểm tra message chảy đúng.
-
-5. **Tạo khối lượng đủ lớn cho streaming**: cho `producer.py` chạy lặp/loop sinh liên tục nhiều đơn hàng giả (không chỉ demo vài chục dòng), vì dataset Kaggle gốc chỉ ~45k đơn (nhỏ).
-
-## Cài đặt cần thiết
 ```
-pip install kafka-python boto3 minio
+ingestion_A/
+├── common.py             # Hàm & hằng số dùng chung (haversine, sinh restaurant_id, luật random...)
+├── simulate_batch.py     # Đọc CSV Kaggle, sinh dữ liệu batch, ghi vào MinIO raw/
+├── producer.py           # Sinh đơn hàng liên tục, bắn sự kiện vào Kafka topic order-events
+├── consumer_test.py      # Script tự kiểm tra producer hoạt động đúng
+├── requirements.txt      # Python packages cần cài
+├── .env.example          # Mẫu file cấu hình (copy thành .env, không push .env thật)
+├── TOM_TAT_TIEN_DO.md    # Tóm tắt tiến độ chi tiết
+└── README.md             # File này
 ```
-+ Kafka, Zookeeper, Kafka UI chạy qua Docker (xem `docker-compose.yml` ở gốc repo).
 
-## File cần có trong thư mục này
-- `download_kaggle_data.py` hoặc ghi chú cách tải dataset
-- `simulate_and_load_raw.py` — script sinh cột mô phỏng, ghi vào MinIO `raw/`
-- `producer.py`
-- `consumer_test.py`
-- `sample_data.csv` — 20–30 dòng dữ liệu giả đúng schema Mục 2.2 (để B/C/D code song song, không cần chờ dữ liệu thật)
-- `requirements.txt`
+## 2. Cách chạy lại từ đầu
 
-## Nộp
-- [ ] `producer.py` chạy được
-- [ ] Dữ liệu trong MinIO `raw/` đúng schema (đủ cột thật lẫn cột mô phỏng)
-- [ ] Ảnh chụp Kafka UI
+```bash
+# 1. Cài package
+pip install -r requirements.txt
 
-## Lưu ý
-Không tự đổi tên cột/schema. Nếu thấy cần đổi, báo cả nhóm trong group chat trước.
+# 2. Tạo file .env từ mẫu (điền đúng giá trị hạ tầng chung — xem bảng Mục 3)
+cp .env.example .env
+
+# 3. Bật hạ tầng chung (chạy ở thư mục gốc repo, không phải trong ingestion_A/)
+cd ..
+docker compose up -d
+
+# 4. Chạy batch ingestion (cần có file CSV Kaggle "Food Delivery Time" trước)
+cd ingestion_A
+python simulate_batch.py --input data/food_delivery.csv
+
+# 5. Chạy streaming ingestion
+python producer.py
+
+# 6. (Tuỳ chọn) Kiểm tra producer hoạt động đúng
+python consumer_test.py
+```
+
+## 3. Endpoint để B kết nối (hạ tầng chung — xem README gốc repo)
+
+| Dịch vụ | Endpoint | Ghi chú |
+|---|---|---|
+| MinIO API | `http://localhost:9000` | user/pass: `minioadmin` / `minioadmin123` |
+| MinIO console | `http://localhost:9001` | để xem trực quan bucket/file |
+| Kafka bootstrap server | `localhost:9092` | dùng để Spark Structured Streaming đọc trực tiếp |
+| Kafka UI | `http://localhost:8090` | để xem message trực quan |
+| Bucket MinIO | `food-delivery-lake` | cần tạo tay lần đầu qua console |
+| Kafka topic | `order-events` | |
+
+## 4. Dữ liệu batch — nơi B đọc vào
+
+**Vị trí:** `s3a://food-delivery-lake/raw/` (file Parquet)
+
+**Schema (đúng hợp đồng dữ liệu đã thống nhất cả nhóm):**
+
+Cột lấy thật từ Kaggle (đã đổi tên snake_case):
+| Cột | Kiểu |
+|---|---|
+| `order_id` | string |
+| `driver_id` | string |
+| `driver_age` | int |
+| `driver_rating` | float |
+| `restaurant_lat` | float |
+| `restaurant_lon` | float |
+| `delivery_lat` | float |
+| `delivery_lon` | float |
+| `order_type` | string |
+| `vehicle_type` | string |
+
+Cột A tự mô phỏng thêm:
+| Cột | Kiểu | Ghi chú |
+|---|---|---|
+| `restaurant_id` | string | sinh từ cặp toạ độ nhà hàng duy nhất |
+| `city` | string | random trong danh sách cố định |
+| `order_date` | date | random trong 30 ngày gần đây |
+| `time_ordered` | timestamp | random giờ trong ngày |
+| `time_picked` | timestamp | `time_ordered` + thời gian chuẩn bị giả lập |
+| `time_delivered` | timestamp | `time_picked` + thời gian giao giả lập (tính theo khoảng cách) |
+| `order_amount` | float | random 30.000–300.000 VNĐ |
+
+> Lưu ý: `time_*` và `order_amount` là dữ liệu **mô phỏng**, không phải số liệu thật từ Kaggle — cần ghi rõ trong báo cáo cuối kỳ ở mục "Giới hạn dữ liệu".
+
+## 5. Dữ liệu streaming — nơi B đọc vào
+
+**Kafka topic:** `order-events`
+
+**Format message (JSON):**
+```json
+{
+  "order_id": "ORD00123",
+  "status": "placed",
+  "timestamp": "2026-08-08T10:15:00",
+  "restaurant_id": "REST_10p77_106p70",
+  "driver_id": "BANGRES18DEL02",
+  "city": "Ho Chi Minh",
+  "restaurant_lat": 10.77,
+  "restaurant_lon": 106.70,
+  "delivery_lat": 10.80,
+  "delivery_lon": 106.65
+}
+```
+
+`status` chỉ nhận 1 trong 4 giá trị theo đúng thứ tự: `placed` → `cooking` → `picked` → `delivered`.
+
+## 6. Việc B cần làm tiếp (theo phân công)
+
+1. Đọc `raw/` từ MinIO, làm sạch dữ liệu (loại null/lỗi), ghi ra `cleansed/`.
+2. Tính `distance_km` (Haversine), `prep_time_min`, `delivery_time_min`, `is_late`; ghi Parquet ra `curated/`, partition theo `order_date` và `city`.
+3. Viết Spark Structured Streaming đọc trực tiếp từ Kafka topic `order-events` để xử lý theo thời gian thực.
+
+## 7. Trạng thái hiện tại của Phần A
+
+Xem chi tiết trong [`TOM_TAT_TIEN_DO.md`](./TOM_TAT_TIEN_DO.md) — bao gồm việc đã làm, sự cố đã xử lý, và các việc còn lại.
