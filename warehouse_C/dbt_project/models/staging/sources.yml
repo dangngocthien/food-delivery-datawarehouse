@@ -1,0 +1,10 @@
+version: 2
+sources:
+  - name: raw
+    schema: public
+    tables:
+      - name: fact_order
+      - name: dim_restaurant
+      - name: dim_driver
+      - name: dim_zone
+      - name: dim_date
