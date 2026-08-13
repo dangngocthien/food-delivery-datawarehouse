@@ -34,7 +34,7 @@ Tất cả nên ở trạng thái `Up` (riêng `airflow-init` sẽ `Exited (0)` 
 
 ---
 
-## 2. Các giao diện web để giảng viên xem trực tiếp
+## 2. Các giao diện web để xem trực tiếp
 
 | Dịch vụ | URL | Đăng nhập |
 |---|---|---|
