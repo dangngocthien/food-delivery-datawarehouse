@@ -41,7 +41,7 @@ Tất cả nên ở trạng thái `Up` (riêng `airflow-init` sẽ `Exited (0)` 
 | **Airflow** (D — Orchestration) | http://localhost:8081 | `admin` / `admin` |
 | **Spark Master UI** (B) | http://localhost:8080 | không cần |
 | **Kafka UI** (A) | http://localhost:8090 | không cần |
-| **MinIO Console** (data lake) | http://localhost:9001 | `minioadmin` / `minioadmin123` |
+| **MinIO Console** (data lake) | http://minio:9000 | `minioadmin` / `minioadmin123` |
 | **Metabase** (D — Dashboard) | http://localhost:3000 | tự tạo tài khoản lần đầu (setup wizard) |
 | **Postgres warehouse** (C) | `localhost:5432`, db `food_delivery_dw` | `warehouse` / `warehouse123` |
 
