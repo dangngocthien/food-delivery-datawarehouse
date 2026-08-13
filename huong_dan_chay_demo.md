@@ -1,7 +1,7 @@
 # HƯỚNG DẪN CHẠY DEMO — Đồ án 18: Giao đồ ăn (Data Warehouse local, Docker Compose)
 
 > Đồ án chạy 100% local bằng Docker Compose, thay thế các dịch vụ GCP gốc (xem bảng ánh xạ đầu file `docker-compose.yml`).
-> Máy giảng viên cần: Docker Desktop, ~8GB RAM trống, port 3000/5432/7077/8080/8081/8090/9000/9001/9092 chưa bị chiếm.
+> Máy cần: Docker Desktop, ~8GB RAM trống, port 3000/5432/7077/8080/8081/8090/9000/9001/9092 chưa bị chiếm.
 
 ---
 
@@ -149,12 +149,12 @@ docker compose down -v     # dừng + xoá sạch dữ liệu (dùng khi muốn 
 | `ModuleNotFoundError: No module named 'psycopg2'` khi chạy `load_to_postgres.py` trong `spark-master` | Image Spark gốc không có `psycopg2-binary`/`s3fs` cài sẵn | Đã sửa: thêm `RUN pip install psycopg2-binary s3fs` vào `spark_B/Dockerfile.spark`, rebuild lại (`docker compose up -d --build`) |
 | Airflow báo lỗi kết nối Postgres lúc mới `up` | `postgres-airflow` chưa healthy khi `airflow-init` chạy | Đợi thêm 30–60s rồi `docker compose restart airflow-init airflow-webserver airflow-scheduler` |
 | Metabase không connect được Postgres | Dùng nhầm `localhost` thay vì tên service `postgres-warehouse` | Metabase chạy trong Docker network riêng — luôn dùng tên service, không dùng `localhost` |
-| Spark job OOM-kill | RAM container Spark bị giới hạn sát (`spark-master` 1.5g, `spark-worker` 2g) trong khi job xử lý dữ liệu lớn | Tăng `mem_limit` trong `docker-compose.yml` nếu máy giảng viên có nhiều RAM hơn 8GB, hoặc giảm `spark.sql.shuffle.partitions` |
+| Spark job OOM-kill | RAM container Spark bị giới hạn sát (`spark-master` 1.5g, `spark-worker` 2g) trong khi job xử lý dữ liệu lớn | Tăng `mem_limit` trong `docker-compose.yml` nếu máy  có nhiều RAM hơn 8GB, hoặc giảm `spark.sql.shuffle.partitions` |
 | PowerShell báo `Missing argument in parameter list` khi set `COMPOSE_PROFILES=... docker compose up` | Cú pháp `VAR=value command` là của Bash, PowerShell không hỗ trợ | Dùng `$env:COMPOSE_PROFILES="..."; docker compose up -d` (xem Mục 4) |
 
 ---
 
-## 7. Checklist nhanh trước khi demo cho giảng viên
+## 7. Checklist nhanh trước khi demo cho 
 
 - [ ] `docker compose up -d --build` chạy sạch, `docker compose ps` toàn bộ `Up`
 - [ ] Batch: MinIO có đủ `raw/ → cleansed/ → curated/`
@@ -164,4 +164,4 @@ docker compose down -v     # dừng + xoá sạch dữ liệu (dùng khi muốn 
 - [ ] Airflow: DAG trigger chạy hết 5 task màu xanh
 - [ ] Metabase: dashboard hiển thị số liệu thật (không rỗng)
 - [ ] Model AI: chạy ra kết quả đánh giá (MAE/RMSE) cụ thể — **D cần viết `train_model.py`**
-- [ ] Đã điền đủ các chỗ `⚠️` ở trên bằng lệnh thật của A/C/D trước khi đưa cho giảng viên
+- [ ] Đã điền đủ các chỗ `⚠️` ở trên bằng lệnh thật của A/C/D trước khi đưa cho 
