@@ -36,10 +36,10 @@ pip install dbt-core dbt-postgres psycopg2
 - `requirements.txt`
 
 ## Nộp
-- [ ] Sơ đồ star schema
-- [ ] Script tạo bảng SQL
-- [ ] dbt project (`staging/`, `marts/`)
-- [ ] Kết quả `dbt test` pass toàn bộ
+- [x] Sơ đồ star schema
+- [x] Script tạo bảng SQL
+- [x] dbt project (`staging/`, `marts/`)
+- [x] Kết quả `dbt test` pass toàn bộ
 
 ## Lưu ý
 Không tự đổi tên cột/schema ở Mục 2.4. Nếu thấy cần đổi, báo cả nhóm trong group chat trước.
