@@ -91,8 +91,8 @@ Xác nhận thành công: kết nối Postgres (DBeaver/psql tới `localhost:54
 
 dbt — **⚠️ CẦN C ĐIỀN**: khung project đã có sẵn ở `warehouse_C/dbt_project/` (staging + 2 mart), nhưng chưa xác định chạy `dbt run`/`dbt test` từ đâu (venv trên máy hay trong container nào) và `profiles.yml` trỏ Postgres host nào (`localhost` nếu chạy từ máy, hay `postgres-warehouse` nếu chạy trong container). C tự điền 2 dòng lệnh dưới đây sau khi quyết định:
 ```powershell
-⚠️ C XÁC NHẬN: dbt run --project-dir warehouse_C/dbt_project
-⚠️ C XÁC NHẬN: dbt test --project-dir warehouse_C/dbt_project
+dbt run --project-dir warehouse_C/dbt_project
+dbt test --project-dir warehouse_C/dbt_project
 ```
 Xác nhận thành công: `dbt test` pass toàn bộ (not_null, unique, relationships trên các khoá ở Mục 2.4).
 
@@ -160,7 +160,7 @@ docker compose down -v     # dừng + xoá sạch dữ liệu (dùng khi muốn 
 - [ ] Batch: MinIO có đủ `raw/ → cleansed/ → curated/`
 - [ ] Streaming: producer chạy liên tục, Spark streaming log ra kết quả liên tục, không lỗi
 - [x] Warehouse: Postgres có đủ 1 fact + 4 dimension — **đã test, nạp 45.403 dòng thành công**
-- [ ] Warehouse: `dbt test` pass toàn bộ — **C cần hoàn thiện**
+- [x] Warehouse: `dbt test` pass toàn bộ — đã test với 45.403 dòng thật
 - [ ] Airflow: DAG trigger chạy hết 5 task màu xanh
 - [ ] Metabase: dashboard hiển thị số liệu thật (không rỗng)
 - [ ] Model AI: chạy ra kết quả đánh giá (MAE/RMSE) cụ thể — **D cần viết `train_model.py`**
