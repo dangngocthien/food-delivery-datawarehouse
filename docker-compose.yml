@@ -1,4 +1,3 @@
-
 # =====================================================================
 # DOCKER COMPOSE - Đồ án 18: Giao đồ ăn - Kho dữ liệu đơn hàng
 # Ánh xạ dịch vụ GCP -> Open-source (theo Mục 4b file đề tài):
@@ -9,13 +8,31 @@
 #   Composer     -> Apache Airflow
 #   Looker Studio-> Metabase
 # =====================================================================
-# Chạy: docker compose up -d
+# Chạy (đầy đủ, dùng khi demo cho giảng viên): docker compose up -d
+#   -> file .env đi kèm đặt sẵn COMPOSE_PROFILES=full nên lệnh trên
+#      tự động lên đủ toàn bộ 10 container như trước, không cần sửa gì.
+#
+# Chạy CHỌN LỌC khi dev để đỡ tốn RAM (Windows/8GB RAM):
+#   Chỉ MinIO + Spark (test phần B):
+#     COMPOSE_PROFILES=batch docker compose up -d
+#   Chỉ Kafka (test phần A):
+#     COMPOSE_PROFILES=streaming docker compose up -d
+#   Chỉ Postgres warehouse (test phần C):
+#     COMPOSE_PROFILES=warehouse docker compose up -d
+#   Chỉ Airflow (test phần D - DAG):
+#     COMPOSE_PROFILES=orchestration docker compose up -d
+#   Kết hợp nhiều nhóm, VD Spark + Warehouse:
+#     COMPOSE_PROFILES=batch,warehouse docker compose up -d
+#   (Đặt biến trên dòng lệnh sẽ ĐÈ giá trị "full" trong .env)
+#
 # Dừng: docker compose down
 # Dừng + xoá luôn dữ liệu: docker compose down -v
 # =====================================================================
 
 x-airflow-common: &airflow-common
   image: apache/airflow:2.9.3
+  env_file:
+    - .env
   environment: &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow/airflow
@@ -31,6 +48,8 @@ x-airflow-common: &airflow-common
   depends_on:
     postgres-airflow:
       condition: service_healthy
+  profiles: ["orchestration", "full"]
+  mem_limit: 1g
 
 services:
 
@@ -45,6 +64,8 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    profiles: ["streaming", "full"]
+    mem_limit: 512m
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -61,6 +82,8 @@ services:
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    profiles: ["streaming", "full"]
+    mem_limit: 1g
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
@@ -72,6 +95,8 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    profiles: ["streaming", "full"]
+    mem_limit: 256m
 
   # -------------------------------------------------------------
   # MINIO - Data Lake (raw / cleansed / curated)
@@ -88,30 +113,55 @@ services:
       MINIO_ROOT_PASSWORD: minioadmin123
     volumes:
       - minio-data:/data
+    profiles: ["batch", "full"]
+    mem_limit: 512m
 
   # -------------------------------------------------------------
   # SPARK (Thành viên B - Spark & Data Lake)
   # -------------------------------------------------------------
   spark-master:
-    image: bitnamilegacy/spark:3.5
+    build:
+      context: ./spark_B
+      dockerfile: Dockerfile.spark
     container_name: spark-master
+    user: root
+    env_file:
+      - .env
     environment:
-      SPARK_MODE: master
+      - HADOOP_USER_NAME=root
+      - USER=root
+      - SPARK_MODE=master
     ports:
-      - "8080:8080"   # Spark UI
+      - "8080:8080"
       - "7077:7077"
+    volumes:
+      - ./:/opt/spark-project
+      - ./spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+    profiles: ["batch", "full"]
+    mem_limit: 1.5g
 
   spark-worker:
-    image: bitnamilegacy/spark:3.5
+    build:
+      context: ./spark_B
+      dockerfile: Dockerfile.spark
     container_name: spark-worker
+    user: root
+    env_file:
+      - .env
     environment:
-      SPARK_MODE: worker
-      SPARK_MASTER_URL: spark://spark-master:7077
-      SPARK_WORKER_MEMORY: 2G
-      SPARK_WORKER_CORES: 2
+      - HADOOP_USER_NAME=root
+      - USER=root
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
     depends_on:
       - spark-master
-
+    volumes:
+      - ./:/opt/spark-project
+      - ./spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf
+    profiles: ["batch", "full"]
+    mem_limit: 2g
   # -------------------------------------------------------------
   # POSTGRES - Data Warehouse (Thành viên C)
   # -------------------------------------------------------------
@@ -126,6 +176,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres-warehouse-data:/var/lib/postgresql/data
+    profiles: ["warehouse", "full"]
+    mem_limit: 512m
 
   # -------------------------------------------------------------
   # POSTGRES - Metadata riêng cho Airflow (tách khỏi warehouse)
@@ -143,6 +195,8 @@ services:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 5s
       retries: 5
+    profiles: ["orchestration", "full"]
+    mem_limit: 512m
 
   # -------------------------------------------------------------
   # AIRFLOW (Thành viên D - Orchestration)
@@ -186,6 +240,8 @@ services:
       - "3000:3000"
     depends_on:
       - postgres-warehouse
+    profiles: ["bi", "full"]
+    mem_limit: 1g
 
 volumes:
   minio-data:

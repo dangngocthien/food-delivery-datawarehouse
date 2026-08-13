@@ -50,7 +50,7 @@ KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "order-events")
 
 SLA_LATE_MINUTES = 45  # đúng ngưỡng thống nhất Mục 2.2 / common.py của A
 # Đơn "mồ côi" (không bao giờ nhận đủ 4 trạng thái) sẽ bị dọn state sau khoảng thời gian này
-ORPHAN_TIMEOUT = "2 hours"
+ORPHAN_TIMEOUT = 2 * 60 * 60 * 1000
 
 # Schema message Kafka — đúng Mục 2.3, không tự thêm/bớt cột
 EVENT_SCHEMA = StructType([

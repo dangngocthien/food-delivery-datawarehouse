@@ -3,6 +3,8 @@ common.py — Hàm & hằng số dùng chung cho simulate_batch.py và producer.
 Mọi luật sinh dữ liệu giả lập phải đi qua đây, để batch và streaming
 luôn sinh dữ liệu NHẤT QUÁN với nhau (đúng yêu cầu Mục 2.2 của file phân công).
 """
+from dotenv import load_dotenv
+load_dotenv()
 
 import os
 import math

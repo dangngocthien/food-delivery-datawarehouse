@@ -12,8 +12,8 @@ env/
 # ============================
 # Biến môi trường & bí mật (KHÔNG commit)
 # ============================
-.env
-*.env
+# .env
+# *.env
 secrets/
 *.key
 *.pem
