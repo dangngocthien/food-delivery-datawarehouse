@@ -30,7 +30,10 @@
 # =====================================================================
 
 x-airflow-common: &airflow-common
-  image: apache/airflow:2.9.3
+  build:
+    context: ./orchestration_D
+    dockerfile: Dockerfile.airflow
+  image: food-delivery-airflow:latest
   env_file:
     - .env
   environment: &airflow-common-env
@@ -39,7 +42,6 @@ x-airflow-common: &airflow-common
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__CORE__DEFAULT_TIMEZONE: Asia/Ho_Chi_Minh
     AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
-    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-boto3 minio kafka-python psycopg2-binary dbt-postgres}
   volumes:
     - ./orchestration_D/dags:/opt/airflow/dags
     - ./orchestration_D/logs:/opt/airflow/logs
