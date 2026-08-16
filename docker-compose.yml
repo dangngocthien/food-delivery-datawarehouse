@@ -240,10 +240,12 @@ services:
     container_name: metabase
     ports:
       - "3000:3000"
+    environment:
+      JAVA_OPTS: "-Xmx1500m"
     depends_on:
       - postgres-warehouse
     profiles: ["bi", "full"]
-    mem_limit: 1g
+    mem_limit: 2g
 
 volumes:
   minio-data:
