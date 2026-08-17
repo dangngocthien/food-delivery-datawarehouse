@@ -67,6 +67,18 @@ def main():
     df = df.dropna(subset=FEATURES_NUMERIC + FEATURES_CATEGORICAL + [TARGET])
     print(f"Sau khi loại NaN: {len(df)} dòng")
 
+    # Lọc outlier tọa độ nhà hàng bị lật dấu (âm thay vì dương) — lỗi/nhiễu
+    # trong dataset Kaggle gốc khiến Haversine tính ra khoảng cách ~nửa chu vi
+    # Trái Đất (~19,000km) thay vì khoảng cách nội thành thật. Xác nhận: 404/45403
+    # dòng (~0.9%) có distance_km > 500km, restaurant_lat/lon mang dấu âm bất
+    # thường (vùng Nam Mỹ) dù dữ liệu gốc là Ấn Độ (toạ độ phải dương). Lọc ở đây
+    # (tầng ML) vì đây là thực hành chuẩn (luôn loại outlier cực đoan trước khi
+    # train); về lâu dài nên báo B chặn từ batch_processing.py để dashboard/dbt
+    # mart cũng không bị ảnh hưởng.
+    before = len(df)
+    df = df[df["distance_km"] <= 20]
+    print(f"Sau khi loại outlier tọa độ lỗi: {len(df)} dòng (loại {before - len(df)} dòng)")
+
     X = df[FEATURES_NUMERIC + FEATURES_CATEGORICAL]
     y = df[TARGET]
 
