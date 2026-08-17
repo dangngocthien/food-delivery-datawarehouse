@@ -1,0 +1,12 @@
+dbt_project:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: postgres-warehouse
+      port: 5432
+      user: warehouse
+      password: warehouse123
+      dbname: food_delivery_dw
+      schema: public
+      threads: 4

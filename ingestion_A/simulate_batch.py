@@ -132,7 +132,13 @@ def write_to_minio_raw(df: pd.DataFrame, filename: str = "orders.parquet"):
         "client_kwargs": {"endpoint_url": MINIO_ENDPOINT},
     }
     path = f"s3://{MINIO_BUCKET}/raw/{filename}"
-    df.to_parquet(path, storage_options=storage_options, index=False)
+    df.to_parquet(
+        path,
+        storage_options=storage_options,
+        index=False,
+        coerce_timestamps="us",
+        allow_truncated_timestamps=True,
+    )
     print(f"[OK] Đã ghi {len(df)} dòng vào {path}")
 
 

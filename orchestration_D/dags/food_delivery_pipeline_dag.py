@@ -45,6 +45,26 @@ with DAG(
         ),
     )
 
+    task_create_tables = BashOperator(
+        task_id="task_create_tables",
+        bash_command=(
+            "python -c \""
+            "import os, psycopg2; "
+            "conn = psycopg2.connect("
+            "host=os.getenv('PG_HOST', 'postgres-warehouse'), "
+            "port=os.getenv('PG_PORT', '5432'), "
+            "dbname=os.getenv('PG_DB', 'food_delivery_dw'), "
+            "user=os.getenv('PG_USER', 'warehouse'), "
+            "password=os.getenv('PG_PASSWORD', 'warehouse123')); "
+            "conn.autocommit = True; "
+            "cur = conn.cursor(); "
+            f"cur.execute(open('{PROJECT_ROOT}/warehouse_C/create_tables.sql').read()); "
+            "cur.close(); conn.close(); "
+            "print('Da tao lai schema warehouse OK')"
+            "\""
+        ),
+    )
+
     task_load_warehouse = BashOperator(
         task_id="task_load_warehouse",
         bash_command=f"python {PROJECT_ROOT}/warehouse_C/load_to_postgres.py",
@@ -65,4 +85,4 @@ with DAG(
         ),
     )
 
-    task_ingest >> task_spark_batch >> task_load_warehouse >> task_dbt_run >> task_refresh_dashboard
+task_ingest >> task_spark_batch >> task_create_tables >> task_load_warehouse >> task_dbt_run >> task_refresh_dashboard
