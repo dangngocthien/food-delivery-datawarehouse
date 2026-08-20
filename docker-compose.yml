@@ -246,8 +246,11 @@ services:
       - postgres-warehouse
     profiles: ["bi", "full"]
     mem_limit: 2g
+    volumes:
+      - metabase-data:/metabase.db
 
 volumes:
   minio-data:
   postgres-warehouse-data:
   postgres-airflow-data:
+  metabase-data:
