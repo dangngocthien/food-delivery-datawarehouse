@@ -182,8 +182,8 @@ Cần đủ profile `streaming` + `batch`. Ở 2 terminal khác nhau:
 python producer.py
 
 # Terminal 2 — Spark đọc Kafka realtime
-docker exec -it spark-master spark-submit \
-  --master spark://spark-master:7077 \
+docker exec -it spark-master spark-submit `
+  --master spark://spark-master:7077 `
   /opt/spark-project/spark_B/streaming_processing.py
 ```
 
